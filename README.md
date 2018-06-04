@@ -1,6 +1,6 @@
 # bilibili-user-information-spider
 # B站3亿用户信息爬虫（mid号，昵称，性别，关注，粉丝，等级）
-  
+## 本项目最后更新于2018-6-4，可能会因为没有更新而失效。如已失效或需要修正，请提issue！
 ## 相关文章:[B站视频信息爬虫](https://github.com/zhang0peter/bilibili-video-information-spider)  
 之前写了B站视频信息的爬虫，然后就想到了爬取B站的用户信息。  </br>
 在2018年3月11号，B站的第3亿用户诞生了。  </br>
