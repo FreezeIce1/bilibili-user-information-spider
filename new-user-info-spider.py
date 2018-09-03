@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 20 09:11:39 2018
+Created on Tue Jul 31 16:58:51 2018
 
 @author: peter
 """
 
-from concurrent import futures
 import time
-import threading
+import asyncio
 import sqlite3
 import requests
 result = []
-lock = threading.Lock()
 total = 1
 conn = None
 cookie = {'domain': '/',
@@ -19,7 +17,8 @@ cookie = {'domain': '/',
           'httpOnly': 'false',
           'name': 'buvid3',
           'path': 'Fri, 29 Jan 2021 08:50:10 GMT',
-          'value': '7A29BBDE-VA94D-4F66-QC63-D9CB8568D84331045infoc,bilibili.com'}
+          'value': '7A29BBDE-VA94D-4F66-QC63-D9CB8568D84331045infoc,bilibili.com'
+          }
 
 uas = 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 \
        like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 \
@@ -29,7 +28,7 @@ uas = 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 \
 def create():
     # 创建数据库
     global conn
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect('user-data.db')
     conn.execute("""
   create table if not exists bilibili_user_info(
   id int prinmary key autocrement ,
@@ -41,7 +40,16 @@ def create():
   level int DEFAULT NULL)""")
 
 
-def run(url):
+async def request(url,headers):
+    future = loop.run_in_executor(
+        None, requests.get, url, headers)
+    response = await future
+    response.encoding = response.apparent_encoding
+    demo = response.text
+    return demo
+
+
+async def run(url):
     # 启动爬虫
     global total, result, uas, cookie
     mid = url.replace('https://m.bilibili.com/space/', '')
@@ -53,9 +61,8 @@ def run(url):
             'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Referer': url}
-    time.sleep(0.5)     # 延迟，避免太快 ip 被封
     try:
-        r = requests.get(url, headers=head, cookies=cookie, timeout=10).text
+        r= await request(url,head)
         if r.find("name\":") == -1:
             return
         name = r[r.find("name\":")+7:r.find('\",\"approve\"')]
@@ -84,8 +91,7 @@ def run(url):
                 'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4',
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
                 'Referer': url}
-        res = requests.get('https://api.bilibili.com/x/relation/stat?jsonp=jsonp&vmid='+str(mid),
-                           headers=head, cookies=cookie, timeout=10).text
+        res=await request('https://api.bilibili.com/x/relation/stat?jsonp=jsonp&vmid='+str(mid),head)
         res_js = eval(res)
         following = res_js['data']['following']
         follower = res_js['data']['follower']
@@ -96,11 +102,10 @@ def run(url):
         print(i)
         print(total)
         return
-    with lock:
-        result.append(users)
-        print(i)
-        print(total)
-        total += 1
+    result.append(users)
+    print(i)
+    print(total)
+    total += 1
 
 
 def save():
@@ -122,11 +127,16 @@ if __name__ == "__main__":
     create()
     total_num = 300000000
     num = 32*20
-    for i in range(1, int(1*total_num/num)):
+    loop = asyncio.get_event_loop()
+    time0 = time.time()
+    for i in range(1, int(total_num/num)):
         begin = num * i
         urls = ["https://m.bilibili.com/space/{}".format(j)
                 for j in range(begin, begin + num)]
-        with futures.ThreadPoolExecutor(10) as executor:
-            executor.map(run, urls)
+        tasks = [asyncio.ensure_future(run(url)) for url in urls]
+        loop.run_until_complete(asyncio.wait(tasks))
         save()
+        time1 = time.time()
+        print("爬取{0}个网页 ，总花费时间:{1:.2f}s".format(
+        total, time1-time0), end="")
     conn.close()
