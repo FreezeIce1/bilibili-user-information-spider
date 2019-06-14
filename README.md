@@ -4,7 +4,7 @@
 ## 相关文章:[B站视频信息爬虫](https://github.com/zhang0peter/bilibili-video-information-spider)  
 ## 在写这个项目时，我还不会Python的协程编程，用协程可提升爬虫速度至少5倍，参考我的文章[线程，协程对比和Python爬虫实战说明](https://github.com/zhang0peter/python-coroutine)
 ## 声明
-* 代码、教程均为张思淡本人原创，且仅限于学习交流，请勿用于任何商业用途！   
+* 代码、教程均为本人原创，且仅限于学习交流，请勿用于任何商业用途！   
 
 
 之前写了B站视频信息的爬虫，然后就想到了爬取B站的用户信息。  </br>
