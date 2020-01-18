@@ -1,5 +1,7 @@
 # B站3亿用户信息爬虫（mid号，昵称，性别，关注，粉丝，等级）
 ## 声明
+[![Run on Repl.it](https://repl.it/badge/github/zhang0peter/bilibili-user-information-spider)](https://repl.it/github/zhang0peter/bilibili-user-information-spider)
+
 * 代码、教程均为本人原创，且仅限于学习交流，请勿用于任何商业用途！   
 
 ********
